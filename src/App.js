@@ -1,26 +1,46 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import connect from '@vkontakte/vkui-connect';
+import {View} from '@vkontakte/vkui';
+import Login from "./src/Auth/Login";
+import Main from "./src/Main";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            activePanel: 'login',
+            fetchedUser: '',
+        }
+    }
+
+    go = (e) => {
+        this.setState({activePanel: e.currentTarget.dataset.to})
+    };
+
+
+    componentDidMount() {
+        connect.subscribe((e) => {
+            switch (e.detail.type) {
+                case 'VKWebAppGetUserInfoResult':
+                    this.setState({fetchedUser: e.detail.data});
+                    break;
+                default:
+                    console.log(e.detail.type);
+            }
+        });
+        connect.send('VKWebAppGetUserInfo', {});
+    }
+
+    render() {
+        return (
+            <View activePanel={this.state.activePanel} header={false}>
+                <Login id="login" go={this.go}/>
+                <Main id="main" go={this.go}/>
+            </View>
+        );
+    }
+
 }
 
 export default App;
